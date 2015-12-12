@@ -13,6 +13,9 @@
 		84912B451A6FA53B00390486 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84912B441A6FA53B00390486 /* Images.xcassets */; };
 		84912B481A6FA53B00390486 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84912B461A6FA53B00390486 /* Main.storyboard */; };
 		84912B541A6FA53B00390486 /* Speccy_ViewerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 84912B531A6FA53B00390486 /* Speccy_ViewerTests.m */; };
+		84912B5F1A6FB50000390486 /* RKJConverterToRGB.m in Sources */ = {isa = PBXBuildFile; fileRef = 84912B5E1A6FB50000390486 /* RKJConverterToRGB.m */; };
+		84912B611A6FB6F600390486 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84912B601A6FB6F600390486 /* Foundation.framework */; };
+		84912B8A1A7008CB00390486 /* animeeshon.png in Resources */ = {isa = PBXBuildFile; fileRef = 84912B891A7008CB00390486 /* animeeshon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +41,10 @@
 		84912B4D1A6FA53B00390486 /* Speccy ViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Speccy ViewerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84912B521A6FA53B00390486 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84912B531A6FA53B00390486 /* Speccy_ViewerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Speccy_ViewerTests.m; sourceTree = "<group>"; };
+		84912B5D1A6FB50000390486 /* RKJConverterToRGB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKJConverterToRGB.h; sourceTree = "<group>"; };
+		84912B5E1A6FB50000390486 /* RKJConverterToRGB.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKJConverterToRGB.m; sourceTree = "<group>"; };
+		84912B601A6FB6F600390486 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		84912B891A7008CB00390486 /* animeeshon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = animeeshon.png; path = _Files/animeeshon.png; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84912B611A6FB6F600390486 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +69,7 @@
 		84912B2E1A6FA53B00390486 = {
 			isa = PBXGroup;
 			children = (
+				84912B601A6FB6F600390486 /* Foundation.framework */,
 				84912B391A6FA53B00390486 /* Speccy Viewer */,
 				84912B501A6FA53B00390486 /* Speccy ViewerTests */,
 				84912B381A6FA53B00390486 /* Products */,
@@ -79,8 +88,11 @@
 		84912B391A6FA53B00390486 /* Speccy Viewer */ = {
 			isa = PBXGroup;
 			children = (
+				84912B891A7008CB00390486 /* animeeshon.png */,
 				84912B3C1A6FA53B00390486 /* AppDelegate.h */,
 				84912B3D1A6FA53B00390486 /* AppDelegate.m */,
+				84912B5D1A6FB50000390486 /* RKJConverterToRGB.h */,
+				84912B5E1A6FB50000390486 /* RKJConverterToRGB.m */,
 				84912B411A6FA53B00390486 /* ViewController.h */,
 				84912B421A6FA53B00390486 /* ViewController.m */,
 				84912B441A6FA53B00390486 /* Images.xcassets */,
@@ -165,6 +177,7 @@
 				TargetAttributes = {
 					84912B361A6FA53B00390486 = {
 						CreatedOnToolsVersion = 6.1.1;
+						DevelopmentTeam = 7B9A56ZSUK;
 					};
 					84912B4C1A6FA53B00390486 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -197,6 +210,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				84912B451A6FA53B00390486 /* Images.xcassets in Resources */,
+				84912B8A1A7008CB00390486 /* animeeshon.png in Resources */,
 				84912B481A6FA53B00390486 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -218,6 +232,7 @@
 				84912B431A6FA53B00390486 /* ViewController.m in Sources */,
 				84912B401A6FA53B00390486 /* main.m in Sources */,
 				84912B3E1A6FA53B00390486 /* AppDelegate.m in Sources */,
+				84912B5F1A6FB50000390486 /* RKJConverterToRGB.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,10 +346,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "Speccy Viewer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -342,10 +361,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "Speccy Viewer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -404,6 +427,7 @@
 				84912B591A6FA53B00390486 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		84912B5A1A6FA53B00390486 /* Build configuration list for PBXNativeTarget "Speccy ViewerTests" */ = {
 			isa = XCConfigurationList;
@@ -412,6 +436,7 @@
 				84912B5C1A6FA53B00390486 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

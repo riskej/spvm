@@ -22,4 +22,17 @@
     // Insert code here to tear down your application
 }
 
+- (BOOL) application:(NSApplication *)sender openFile:(NSString *)filename
+{
+    
+    NSLog(@"Input file: %@", filename);
+    
+    return YES;
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
+    
+    return YES;
+}
+
 @end

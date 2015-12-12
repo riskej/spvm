@@ -201,7 +201,7 @@
     //          3 - img(gsc)
     //          4 - mg8
     //          5 - mg4
-    //          6 - mg2
+    //          6 - mg2            Hi 4 Riski
     //          7 – mg1
     //          8 - mc
     //          9 - chr$

@@ -407,7 +407,7 @@
     CGImageRef newCGImage = CGBitmapContextCreateImage(context);
 //    CGContextDrawImage(context, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage);
     
-    CGColorSpaceRelease(colorSpace);
+//    CGColorSpaceRelease(colorSpace);
     CGContextRelease(context);
     
     NSRect rect = NSMakeRect(0.0, 0.0, 512, 384);
@@ -595,7 +595,7 @@
     rect.size.height = 384;
     NSImage * processedImage = [[NSImage alloc] initWithCGImage:newCGImage size:rect.size];
     
-    CGColorSpaceRelease(colorSpace);
+//    CGColorSpaceRelease(colorSpace);
     CGContextRelease(context);
     
     FinallyProcessedImage = processedImage;
@@ -709,7 +709,7 @@
     
 //    UIImage * processedImage = [UIImage imageWithCGImage:newCGImage];
     
-    CGColorSpaceRelease(colorSpace);
+//    CGColorSpaceRelease(colorSpace);
     CGContextRelease(context);
     
     NSRect rect = NSMakeRect(0.0, 0.0, 512, 384);

@@ -10,6 +10,8 @@
 
 @interface ViewController : NSViewController
 
+- (void) handleDelegateContent;
+- (void) preparingFilesToShow;
 -(IBAction)openDocument:(id)sender;
 
 @end

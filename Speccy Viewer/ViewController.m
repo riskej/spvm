@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "RKJConverterToRGB.h"
+#import "AppDelegate.h"
 
 @implementation ViewController {
     
@@ -37,31 +38,29 @@
 
 
 - (void)viewDidLoad {
+//    NSLog(@"viewDidLoad");
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDelegateContent:) name:@"updateScreen" object:nil];
     [super viewDidLoad];
-    
     [self.view setWantsLayer:YES];
-    self.view.layer.backgroundColor = [[NSColor blackColor] CGColor];
     kRetina = 2;
+    self.view.layer.backgroundColor = [[NSColor blackColor] CGColor];
     
-//    screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(32, 24, 256, 192)];
-//    screenToShow.image = [NSImage imageNamed:@"animeeshon.png"];
-//    
-//    [self.view addSubview:screenToShow];
     
-//    NSLog(@"%@", self.view.layer);
-    
+    currentData = [NSData dataWithContentsOfURL:[NSURL fileURLWithPath:@"/Users/riskej/Dropbox/Public/_apptest/SpeccyAliveForever.scr"]];
     [self convert6912Screen:2];
-//    [self convert6144_n_rgb:1];
     
 }
 
 
 -(IBAction)openDocument:(id)sender {
     
+    NSArray  *fileTypes = [NSArray arrayWithObjects:@"scr",@"img",@"mg1",@"mg2",@"mg4",@"mg8",@"mgs",@"mc",@"3",@"rgb",@"ch$",nil];
+    
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setCanChooseFiles:YES];
     [panel setCanChooseDirectories:NO];
-    [panel setAllowsMultipleSelection:NO]; // yes if more than one dir is allowed
+    [panel setAllowsMultipleSelection:NO];
+    [panel setAllowedFileTypes:fileTypes];
     
     NSInteger clicked = [panel runModal];
     
@@ -279,6 +278,19 @@
             [self convertChr$:9 height:ident[5] width:ident[4]];
         }
         
+    }
+    
+}
+
+
+- (IBAction)handleDelegateContent:(id)sender {
+//    NSLog (@"Get path:");
+    AppDelegate * appDelegate = (AppDelegate *) [[NSApplication sharedApplication] delegate];
+    
+    if (appDelegate.IncomingURL != nil) {
+        NSLog (@"Get path: %@",appDelegate.IncomingURL);
+        openedURL = [NSURL fileURLWithPath:appDelegate.IncomingURL];
+        [self preparingFilesToShow];
     }
     
 }

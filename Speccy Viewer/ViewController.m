@@ -142,7 +142,30 @@
     
     screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, 512, 384)];
     screenToShow.image = convertedImage.FinallyProcessedImage;
+    [self.view addSubview:screenToShow];
     
+}
+
+
+- (void) convertImgMg1 {
+    NSLog(@"IMg1");
+    
+    RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
+    convertedImage.kRetina = kRetina;
+    [convertedImage openZX_img_mg1:currentData];
+    
+    border01 = convertedImage.BorderColor1;
+    border02 = convertedImage.BorderColor2;
+    
+    [self getBorderColors];
+    self.view.layer.backgroundColor = [borderColor CGColor];
+   
+    convertedImage.mode_scr = 7;
+    convertedImage.kRetina = kRetina;
+    [convertedImage openZX_img_mg1_noflic:currentData];
+    
+    screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, 512, 384)];
+    screenToShow.image = convertedImage.FinallyProcessedImage;
     [self.view addSubview:screenToShow];
     
 }
@@ -189,6 +212,10 @@
         
         else if (incomingFileSize == 18688) {
             [self convertImgMgx:6];
+        }
+        
+        else if (incomingFileSize == 19456) {
+            [self convertImgMg1];
         }
         
     }

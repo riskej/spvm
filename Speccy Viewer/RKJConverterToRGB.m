@@ -621,6 +621,270 @@
 }
 
 
+- (void) openZX_img_mg1:(NSData*)datafile {
+    
+    //    NSUInteger testArray[15] = [1, 2, 3];
+    
+    UInt32 * inputPixels;
+    
+    NSUInteger colorPalettePulsar [16] = {0x0, 0xca0000, 0x0000ca, 0xca00ca, 0x00ca00, 0xcaca00, 0x00caca, 0xcacaca,
+        0x0, 0xfe0000, 0x0000fe, 0xfe00fe, 0x00fe00, 0xfefe00, 0x00fefe, 0xfefefe};
+    
+    //    NSUInteger colorPalettePulsar [16] = {0x0, 0x0000ea, 0xea0000, 0xea00ea, 0x00ea00, 0x00eaea, 0xeaea00, 0xeaeaea,
+    //        0x0, 0x0000fe, 0xfe0000, 0xfe00fe, 0x00fe00, 0x00fefe, 0xfefe00, 0xfefefe};
+    
+    NSUInteger inputWidth = 256*2;
+    NSUInteger inputHeight = 192*2;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    NSUInteger bytesPerPixel = 4;
+    NSUInteger bitsPerComponent = 8;
+    
+    NSUInteger inputBytesPerRow = bytesPerPixel * inputWidth;
+    
+    inputPixels = (UInt32 *)calloc(inputHeight * inputWidth, sizeof(UInt32));
+    
+    NSUInteger firstByteOfPixelArrayOfFirstScreen=256;
+    NSUInteger firstByteOfPixelArrayOfSecondScreen=256+6144;
+    NSUInteger firstByteOf_1_CharsArrayOfFirstScreen=256+6144*2;
+    NSUInteger firstByteOf_1_CharsArrayOfSecondScreen=256+6144*2+3072;
+    NSUInteger firstByteOf_8_CharsArrayOfFirstScreen=256+6144*3;
+    NSUInteger firstByteOf_8_CharsArrayOfSecondScreen=256+6144*3+384;
+    
+    
+    NSData *data = datafile;
+    NSUInteger len = [data length];
+    Byte *byteData = (Byte*)malloc(len);
+    memcpy(byteData, [data bytes], len);
+    
+    BorderColor1 = byteData [5];
+    BorderColor2 = byteData [6];
+    //    NSLog(@"border1: %i", BorderColor1);
+    //    NSLog(@"border2: %i", BorderColor2);
+    NSLog(@"screen length: %lu", (unsigned long)data.length);
+    
+    mode_scr = 7;
+    
+    NSUInteger shift_1_Zxchar=0;
+    NSUInteger shift_8_Zxchar=0;
+    
+    NSUInteger atr=0;
+    
+    for (NSUInteger yRetina = 0; yRetina < 2; yRetina++) {
+        
+        for (int line=0; line<192; line++) {
+            
+            [self calculateAddressForPixel:line andMode:mode_scr];
+            shift_8_Zxchar = (line>>3) * 16;
+            shift_1_Zxchar = line * 16;
+            
+            for (int xchar=0; xchar<32; xchar++) {
+                
+                UInt32 * inputPixel = inputPixels + (line * 2 + yRetina) * 512 + (xchar*16);
+                
+                if (xchar>7 && xchar<24) atr = byteData[firstByteOf_1_CharsArrayOfFirstScreen + shift_1_Zxchar + xchar-8];
+                else atr = byteData[firstByteOf_8_CharsArrayOfFirstScreen + shift_8_Zxchar + (xchar & 15)];
+                
+                NSUInteger bright = atr & 64 ? 8 : 0;
+                NSUInteger ink=(UInt32)colorPalettePulsar [(atr & 7) + bright];
+                NSUInteger paper=(UInt32)colorPalettePulsar [(atr >> 3) & 7 + bright];
+                NSUInteger byte = byteData[firstByteOfPixelArrayOfFirstScreen + shiftPixelAdress + xchar];
+                
+                for (int xBit=128; xBit>0; xBit/=2) {
+                    *inputPixel++ = byte & xBit ? (int)ink : (int)paper;
+                    *inputPixel++ = byte & xBit ? (int)ink : (int)paper;
+                }
+            }
+        }
+    }
+    
+    
+    CGContextRef context = CGBitmapContextCreate(inputPixels, inputWidth, inputHeight,
+                                                 bitsPerComponent, inputBytesPerRow, colorSpace,
+                                                 kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
+    
+    CGImageRef newCGImage = CGBitmapContextCreateImage(context);
+//    CGContextDrawImage(context, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage);
+    
+//    UIImage * processedImage = [UIImage imageWithCGImage:newCGImage];
+    
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context);
+    
+    NSRect rect = NSMakeRect(0.0, 0.0, 512, 384);
+    rect.size.width = 512;
+    rect.size.height = 384;
+    NSImage * processedImage = [[NSImage alloc] initWithCGImage:newCGImage size:rect.size];
+    
+    FinallyProcessedImage = processedImage;
+    
+    for (NSUInteger yRetina = 0; yRetina < 2; yRetina++) {
+        
+        for (int line=0; line<192; line++) {
+            
+            [self calculateAddressForPixel:line andMode:mode_scr];
+            shift_8_Zxchar = (line>>3) * 16;
+            shift_1_Zxchar = line * 16;
+            
+            for (int xchar=0; xchar<32; xchar++) {
+                
+                UInt32 * inputPixel = inputPixels + (line * 2 + yRetina) * 512 + (xchar*16);
+                
+                if (xchar>7 && xchar<24) atr= byteData[firstByteOf_1_CharsArrayOfSecondScreen + shift_1_Zxchar + xchar-8];
+                else atr= byteData[firstByteOf_8_CharsArrayOfSecondScreen + shift_8_Zxchar + (xchar & 15)];
+                
+                NSUInteger bright = atr & 64 ? 8 : 0;
+                NSUInteger ink=(UInt32)colorPalettePulsar [(atr & 7) + bright];
+                NSUInteger paper=(UInt32)colorPalettePulsar [(atr >> 3) & 7 + bright];
+                NSUInteger byte = byteData[firstByteOfPixelArrayOfSecondScreen + shiftPixelAdress + xchar];
+                
+                for (int xBit=128; xBit>0; xBit/=2) {
+                    *inputPixel++ = byte & xBit ? (int)ink : (int)paper;
+                    *inputPixel++ = byte & xBit ? (int)ink : (int)paper;
+                }
+            }
+        }
+    }
+    
+    CGContextRef context2 = CGBitmapContextCreate(inputPixels, inputWidth, inputHeight,
+                                                  bitsPerComponent, inputBytesPerRow, colorSpace,
+                                                  kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
+    
+    CGImageRef newCGImage2 = CGBitmapContextCreateImage(context2);
+//    CGContextDrawImage(context2, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage2);
+//    UIImage * processedImage2 = [UIImage imageWithCGImage:newCGImage2];
+    
+    NSImage * processedImage2 = [[NSImage alloc] initWithCGImage:newCGImage2 size:rect.size];
+    
+    FinallyProcessedImage2 = processedImage2;
+    
+    free(inputPixels);
+    free(byteData);
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context2);
+    CGImageRelease(newCGImage);
+    CGImageRelease(newCGImage2);
+    
+}
+
+- (void) openZX_img_mg1_noflic:(NSData*)datafile {
+    
+    UInt32 * inputPixels;
+    
+    NSUInteger inputWidth = 256*kRetina;
+    NSUInteger inputHeight = 192*kRetina;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    NSUInteger bytesPerPixel = 4;
+    NSUInteger bitsPerComponent = 8;
+    NSUInteger inputBytesPerRow = bytesPerPixel * inputWidth;
+    
+    inputPixels = (UInt32 *)calloc(inputHeight * inputWidth, sizeof(UInt32));
+    
+    NSUInteger firstByteOfPixelArrayOfFirstScreen=256;
+    NSUInteger firstByteOfPixelArrayOfSecondScreen=256+6144;
+    NSUInteger firstByteOf_1_CharsArrayOfFirstScreen=256+6144*2;
+    NSUInteger firstByteOf_1_CharsArrayOfSecondScreen=256+6144*2+3072;
+    NSUInteger firstByteOf_8_CharsArrayOfFirstScreen=256+6144*3;
+    NSUInteger firstByteOf_8_CharsArrayOfSecondScreen=256+6144*3+384;
+    
+    NSData *data = datafile;
+    NSUInteger len = [data length];
+    Byte *byteData = (Byte*)malloc(len);
+    memcpy(byteData, [data bytes], len);
+    
+    BorderColor1 = byteData [5];
+    BorderColor2 = byteData [6];
+    //    NSLog(@"border1: %i", BorderColor1);
+    //    NSLog(@"border2: %i", BorderColor2);
+    NSLog(@"screen length: %lu", (unsigned long)data.length);
+    
+    mode_scr = 7;
+    
+    NSUInteger shift_1_Zxchar=0;
+    NSUInteger shift_8_Zxchar=0;
+    int atr1=0;
+    int atr2=0;
+    
+    for (int line=0; line<192; line++) {
+        
+        [self calculateAddressForPixel:line andMode:mode_scr];
+        shift_8_Zxchar = (line>>3) * 16;
+        shift_1_Zxchar = line * 16;
+        
+        for (int xchar=0; xchar<32; xchar++) {
+            
+            if (xchar>7 && xchar<24) {
+                atr1 = byteData[firstByteOf_1_CharsArrayOfFirstScreen + shift_1_Zxchar + xchar-8];
+                atr2 = byteData[firstByteOf_1_CharsArrayOfSecondScreen + shift_1_Zxchar + xchar-8];
+            }
+            else {
+                atr1 = byteData[firstByteOf_8_CharsArrayOfFirstScreen + shift_8_Zxchar + (xchar & 15)];
+                atr2 = byteData[firstByteOf_8_CharsArrayOfSecondScreen + shift_8_Zxchar + (xchar & 15)];
+            }
+            int byte1 = byteData[firstByteOfPixelArrayOfFirstScreen + shiftPixelAdress + xchar];
+            int bright1 = atr1 & 64;
+            
+            int byte2 = byteData[firstByteOfPixelArrayOfSecondScreen + shiftPixelAdress + xchar];
+            int bright2 = atr2 & 64;
+            
+            // i - ink , p - paper
+            UInt32 i1i2=[self calculateColorForGiga:atr1 :atr2];
+            UInt32 i1p2=[self calculateColorForGiga:atr1 :(bright2|((atr2>>3)&7))];
+            UInt32 p1i2=[self calculateColorForGiga:(bright1|((atr1>>3)&7)) :atr2];
+            UInt32 p1p2=[self calculateColorForGiga:(bright1|((atr1>>3)&7)) :(bright2|((atr2>>3)&7))];
+            
+            int xx=0;
+            for (int xBit=128; xBit>0; xBit/=2,xx++) {
+                UInt32 val1 = 0;
+                int px=byte1 & xBit ? 1 : 0;
+                px+=byte2 & xBit ? 2 : 0;
+                switch(px){
+                    case 0: val1=p1p2;
+                        break;
+                    case 1: val1=i1p2;
+                        break;
+                    case 2: val1=p1i2;
+                        break;
+                    case 3: val1=i1i2;
+                        break;
+                }
+                for(int yRetina=0;yRetina<kRetina;yRetina++)
+                {
+                    NSUInteger adr = (line * kRetina + yRetina) * inputWidth + (xchar * 8 +xx) * kRetina;
+                    UInt32 * inputPixel_firstImage_noFlash = inputPixels +adr;
+                    for(int xRetina=0;xRetina<kRetina;xRetina++) {
+                        *inputPixel_firstImage_noFlash++ = val1;
+                    }
+                }
+            }
+        }
+    }
+    
+    CGContextRef context = CGBitmapContextCreate(inputPixels, inputWidth, inputHeight,
+                                                 bitsPerComponent, inputBytesPerRow, colorSpace,
+                                                 kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
+    
+    CGImageRef newCGImage = CGBitmapContextCreateImage(context);
+//    CGContextDrawImage(context, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage);
+    
+    free(inputPixels);
+    
+    NSRect rect = NSMakeRect(0.0, 0.0, 512, 384);
+    rect.size.width = 512;
+    rect.size.height = 384;
+    NSImage * processedImage = [[NSImage alloc] initWithCGImage:newCGImage size:rect.size];
+    FinallyProcessedImage = processedImage;
+    
+    free(byteData);
+    CGColorSpaceRelease(colorSpace);
+    CGImageRelease(newCGImage);
+    CGContextRelease(context);
+}
+
+
 -(void)reverse:(Byte*)byteData withCharN:(NSUInteger)ch charMode:(NSUInteger)chrMode {
     NSUInteger pixs=7 + ch * chrMode;
     int col=byteData[pixs+ chrMode-1];

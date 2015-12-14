@@ -121,7 +121,7 @@
 
 
 - (void) convertImgMgx:(int) mode_scr {
-    
+    NSLog(@"MGS");
     RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
     convertedImage.mode_scr = mode_scr;
     convertedImage.kRetina = kRetina;
@@ -188,6 +188,14 @@
     currentData = [NSData dataWithContentsOfURL:openedURL];
     incomingFileSize = [currentData length];
     
+    NSUInteger len = 7;
+    Byte *ident = (Byte*)malloc(len);
+    
+    if (incomingFileSize > 15) {
+        NSData *data = currentData;
+        memcpy(ident, [data bytes], len);
+    }
+    
     if (currentData != nil) {
      
         if (incomingFileSize == 6912) {
@@ -196,6 +204,10 @@
         
         else if (incomingFileSize == 6144) {
             [self convert6144_n_rgb:1];
+        }
+        
+        else if (incomingFileSize == 12288) {
+            [self convert6912Screen:8];
         }
         
         else if (incomingFileSize == 13824) {
@@ -214,8 +226,18 @@
             [self convertImgMgx:6];
         }
         
+        else if (incomingFileSize == 18432) {
+            [self convert6144_n_rgb:10];
+        }
+        
         else if (incomingFileSize == 19456) {
             [self convertImgMg1];
+        }
+        
+        else if (incomingFileSize == 36871) {
+            if (ident[0]=='M' && ident[1]=='G' && ident[2]=='S'){
+                [self convertImgMgx:11];
+            }
         }
         
     }

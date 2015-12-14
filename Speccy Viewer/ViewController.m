@@ -25,12 +25,16 @@
 }
 
     int kRetina;
+    int border01, border02;
     NSUInteger incomingFileSize;
     NSImage *image01;
     NSImage *image02;
 
     NSData *currentData;
     NSURL *openedURL;
+
+    NSColor *borderColor;
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -78,6 +82,8 @@
     //    NSLog(@"URL in view: %@", currentData);
 //    NSData *data2 = [NSData dataWithContentsOfURL:[NSURL URLWithString :@"https://dl.dropboxusercontent.com/u/36464659/_apptest/np.scr"]];
     
+    self.view.layer.backgroundColor = [[NSColor blackColor] CGColor];
+    
     RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
     convertedImage.mode_scr=mode_scr;
     convertedImage.kRetina = kRetina;
@@ -92,41 +98,52 @@
     screenToShow2 = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, 512, 384)];
     screenToShow2.image = convertedImage.FinallyProcessedImage;
 
-//    curTypeFile=1;
-    isNoflicMode=YES;
     [self.view addSubview:screenToShow];
-//    [self.view addSubview:screenToShow2];
-//    [self.view insertSubview:screenToShow2 belowSubview:mainMenu];
 }
+
 
 - (void) convert6912Screen:(int) mode_scr {
     
-    //    NSLog(@"URL in view: %@", currentData);
-   
-    // Test data
+    self.view.layer.backgroundColor = [[NSColor blackColor] CGColor];
     
     RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
     convertedImage.mode_scr=mode_scr;
     convertedImage.kRetina = kRetina;
     [convertedImage openZX_scr6912:currentData];
     
-//    image01 = convertedImage.FinallyProcessedImage;
-//    image02 = convertedImage.FinallyProcessedImage2;
+    screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, 512, 384)];
+    screenToShow.image = convertedImage.FinallyProcessedImage;
+
+    
+    [self.view addSubview:screenToShow];
+    
+}
+
+
+- (void) convertImgMgx:(int) mode_scr {
+    
+    RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
+    convertedImage.mode_scr = mode_scr;
+    convertedImage.kRetina = kRetina;
+    [convertedImage openZX_img_mgX:currentData];
+    
+    border01 = convertedImage.BorderColor1;
+    border02 = convertedImage.BorderColor2;
+    
+    [self getBorderColors];
+    
+    if (incomingFileSize != 13824) {
+        self.view.layer.backgroundColor = [borderColor CGColor];
+    }
+    
+    convertedImage.mode_scr = mode_scr;
+    convertedImage.kRetina = kRetina;
+    [convertedImage openZX_img_mgX_noflic:currentData];
     
     screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, 512, 384)];
     screenToShow.image = convertedImage.FinallyProcessedImage;
     
-//    screenToShow2 = [[NSImageView alloc] initWithFrame:NSMakeRect(32, 24, 256, 192)];
-//    screenToShow2.image = convertedImage.FinallyProcessedImage2;
-    
     [self.view addSubview:screenToShow];
-//    [self.view addSubview:screenToShow2];
-   
-//    isNoflicMode = NO;
-//    isFlashImage = YES;
-//    is6912Image = YES;
-//    isMG1Image = NO;
-//    [self showFlickeringPicture];
     
 }
 
@@ -145,7 +162,6 @@
 
 - (void) preparingFilesToShow {
     
-    
     currentData = [NSData dataWithContentsOfURL:openedURL];
     incomingFileSize = [currentData length];
     
@@ -159,8 +175,36 @@
             [self convert6144_n_rgb:1];
         }
         
+        else if (incomingFileSize == 13824) {
+            [self convertImgMgx:3];
+        }
+        
+        else if (incomingFileSize == 14080) {
+            [self convertImgMgx:4];
+        }
+        
+        else if (incomingFileSize == 15616) {
+            [self convertImgMgx:5];
+        }
+        
+        else if (incomingFileSize == 18688) {
+            [self convertImgMgx:6];
+        }
+        
     }
     
 }
+
+
+- (void)getBorderColors {
+    
+    float border[3]={0,0.4609375,0.8039};
+    float colRed = border[((border01 & 2) + (border02 & 2)) >>1];
+    float colGreen = border[((border01 & 4) + (border02 & 4)) >>2];
+    float colBlue = border[(border01 & 1) + (border02 & 1)];
+    borderColor = [NSColor colorWithRed:colRed green:colGreen blue:colBlue alpha:1];
+    
+}
+
 
 @end

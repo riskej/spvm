@@ -885,6 +885,185 @@
 }
 
 
+- (void) openZX_chr:(NSData*)datafile {
+    
+    //    NSUInteger testArray[15] = [1, 2, 3];
+    
+    UInt32 * inputPixels;
+    UInt32 * inputPixels2;
+    NSData *data = datafile;
+    NSUInteger len = [data length];
+    Byte *byteData = (Byte*)malloc(len);
+    memcpy(byteData, [data bytes], len);
+    
+    NSUInteger colorPalettePulsar [16] = {0x0, 0xca0000, 0x0000ca, 0xca00ca, 0x00ca00, 0xcaca00, 0x00caca, 0xcacaca,
+        0x0, 0xfe0000, 0x0000fe, 0xfe00fe, 0x00fe00, 0xfefe00, 0x00fefe, 0xfefefe};
+    
+    
+    int xMax=byteData[4];
+    int yMax=byteData[5];
+    int mode=byteData[6];
+    int mode05=9;
+    int modeY=8;
+    if(mode>17) mode05=mode/2;
+    switch (mode) {
+        case 18:
+            modeY=8;
+            break;
+        case 20:
+            modeY=4;
+            break;
+        case 24:
+            modeY=2;
+            break;
+        default:
+            break;
+    }
+    
+    NSUInteger inputWidth = xMax * 8 * kRetina;
+    NSUInteger inputHeight =yMax * 8 * kRetina;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    NSUInteger bytesPerPixel = 4;
+    NSUInteger bitsPerComponent = 8;
+    
+    
+    NSUInteger inputBytesPerRow = bytesPerPixel * inputWidth;
+    
+    
+    inputPixels =  (UInt32 *)calloc(inputHeight * inputWidth, sizeof(UInt32));
+    inputPixels2 = (UInt32 *)calloc(inputHeight * inputWidth, sizeof(UInt32));
+    NSLog(@"screen length: %lu", (unsigned long)data.length);
+    NSLog(@"Width: %i", xMax);
+    NSLog(@"Height: %i", yMax);
+    
+    UInt32 iipp[4];
+    for (int ychar=0; ychar<yMax; ychar++) {
+        
+        for (int xchar=0; xchar<xMax; xchar++) {
+            
+            NSUInteger nchar = ychar * xMax + xchar;
+            
+            if (mode==8) {
+                for(int ypix=0;ypix<8;ypix++) {
+                    NSUInteger adr = ((ychar * 8 + ypix) * kRetina) * inputWidth  + (xchar*8*kRetina);
+                    NSUInteger byte = byteData[7+nchar*8+ypix];
+                    int xpix=0;
+                    for(int xBit=128;xBit>0;xBit/=2) {
+                        UInt32 val= byte & xBit ? 0xffffff : 0;
+                        for(int yRetina=0;yRetina<kRetina;yRetina++) {
+                            UInt32 * inputPixel=inputPixels + adr + yRetina * inputWidth + xpix * kRetina;
+                            UInt32 * inputPixel2=inputPixels2 + adr + yRetina * inputWidth + xpix * kRetina;
+                            xpix++;
+                            for(int xRetina=0;xRetina<kRetina;xRetina++) {
+                                *inputPixel++=val;
+                                *inputPixel2++=val;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (mode==9) {
+                for(int ypix=0;ypix<8;ypix++) {
+                    NSUInteger adr = ((ychar * 8 + ypix) * kRetina) * inputWidth  + (xchar*8*kRetina);
+                    NSUInteger atr = byteData[7+nchar*9+8];
+                    NSUInteger bright = atr & 64 ? 8 : 0;
+                    NSUInteger ink=(UInt32)colorPalettePulsar [(atr & 7) + bright];
+                    NSUInteger paper=(UInt32)colorPalettePulsar [(atr >> 3) & 7 + bright];
+                    NSUInteger byte = byteData[7+nchar*9+ypix];
+                    int xpix=0;
+                    for(int xBit=128;xBit>0;xBit/=2,xpix++) {
+                        UInt32 val= byte & xBit ? (int)ink : (int)paper;
+                        for(int yRetina=0;yRetina<kRetina;yRetina++) {
+                            UInt32 * inputPixel=inputPixels + adr + yRetina * inputWidth + xpix * kRetina;
+                            UInt32 * inputPixel2=inputPixels2 + adr + yRetina * inputWidth + xpix * kRetina;
+                            
+                            for(int xRetina=0;xRetina<kRetina;xRetina++) {
+                                *inputPixel++=val;
+                                *inputPixel2++=val;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (mode>17) {
+                for(int ypix=0;ypix<8;ypix++) {
+                    NSUInteger adr = ((ychar * 8 + ypix) * kRetina) * inputWidth  + (xchar*8*kRetina);
+                    NSUInteger byte1 = byteData[7 + nchar*mode + ypix];
+                    NSUInteger atr1 = byteData[7 + nchar*mode + 8 + ypix/modeY];
+                    NSUInteger flash1 = atr1 & 128;
+                    NSUInteger bright1 = atr1 & 64;
+                    
+                    NSUInteger byte2 = byteData[7 + nchar*mode + mode05 + ypix];
+                    NSUInteger atr2 = byteData[7 + nchar*mode + mode05+8 + ypix/modeY];
+                    NSUInteger flash2 = atr2 & 128;
+                    NSUInteger bright2 = atr2 & 64;
+                    
+                    // i - ink , p - paper     // p0p1 - 1   i0i1 - 2  i0p1 - 3   p0i1 - 4
+                    iipp[3]=[self calculateColorForGiga:atr1 :atr2];
+                    iipp[1]=[self calculateColorForGiga:atr1 :(bright2|((atr2>>3)&7))];
+                    iipp[2]=[self calculateColorForGiga:(bright1|((atr1>>3)&7)) :atr2];
+                    iipp[0]=[self calculateColorForGiga:(bright1|((atr1>>3)&7)) :(bright2|((atr2>>3)&7))];
+                    
+                    NSUInteger xpix=0;
+                    for (int xBit=128; xBit>0; xBit/=2,xpix++) {
+                        NSUInteger val1=byte1 & xBit ? 1 : 0;
+                        val1+=byte2 & xBit ? 2 : 0;
+                        NSUInteger val2=val1 ^ (flash1>>7) ^ (flash2>>6);
+                        for(int yRetina=0;yRetina<kRetina;yRetina++)
+                        {
+                            UInt32 * inputPixel_noFlash = inputPixels + adr + yRetina * inputWidth + xpix * kRetina;
+                            UInt32 * inputPixel_invertedFlash = inputPixels2 + + adr + yRetina * inputWidth + xpix * kRetina;
+                            for(int xRetina=0;xRetina<kRetina;xRetina++) {
+                                *inputPixel_noFlash++ =iipp[val1];
+                                *inputPixel_invertedFlash++ = iipp[val2];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    CGContextRef context = CGBitmapContextCreate(inputPixels, inputWidth, inputHeight,
+                                                 bitsPerComponent, inputBytesPerRow, colorSpace,
+                                                 kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
+    
+    CGImageRef newCGImage = CGBitmapContextCreateImage(context);
+//    CGContextDrawImage(context, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage);
+    
+    NSRect rect = NSMakeRect(0, 0, inputWidth, inputHeight);
+    rect.size.width = inputWidth;
+    rect.size.height = inputHeight;
+    NSImage * processedImage = [[NSImage alloc] initWithCGImage:newCGImage size:rect.size];
+    FinallyProcessedImage = processedImage;
+    
+//    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context);
+    //
+    CGContextRef context2 = CGBitmapContextCreate(inputPixels2, inputWidth, inputHeight,
+                                                  bitsPerComponent, inputBytesPerRow, colorSpace,
+                                                  kCGImageAlphaNoneSkipLast | kCGBitmapByteOrder32Big);
+    
+    CGImageRef newCGImage2 = CGBitmapContextCreateImage(context2);
+//    CGContextDrawImage(context2, CGRectMake(0, 0, inputWidth, inputHeight), newCGImage2);
+    
+    NSImage * processedImage2 = [[NSImage alloc] initWithCGImage:newCGImage2 size:rect.size];
+    FinallyProcessedImage2 = processedImage2;
+    
+    free(inputPixels);
+    free(inputPixels2);
+    free(byteData);
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context2);
+    CGImageRelease(newCGImage);
+    CGImageRelease(newCGImage2);
+}
+
+
 -(void)reverse:(Byte*)byteData withCharN:(NSUInteger)ch charMode:(NSUInteger)chrMode {
     NSUInteger pixs=7 + ch * chrMode;
     int col=byteData[pixs+ chrMode-1];

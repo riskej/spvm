@@ -171,6 +171,36 @@
 }
 
 
+- (void) convertChr$:(int)mode_scr height:(int)height width:(int)width {
+    
+    //    NSLog(@"URL in view: %@", currentData);
+    self.view.layer.backgroundColor = [[NSColor blackColor] CGColor];
+    
+    RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
+    convertedImage.mode_scr=mode_scr;
+    convertedImage.kRetina = kRetina;
+    [convertedImage openZX_chr:currentData];
+    
+    image01 = convertedImage.FinallyProcessedImage;
+    image02 = convertedImage.FinallyProcessedImage2;
+//    imageForNoflicDemonstration01 = convertedImage.FinallyProcessedImage;
+    int yy = height*8;
+    int xx = width*8;
+    
+    screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, xx*2, yy*2)];
+//    NSRect e = [[NSScreen mainScreen] frame];
+//    int windowHeight = (int)e.size.height/2;
+//    int windowWight = (int)e.size.width/2;
+    screenToShow = [[NSImageView alloc] initWithFrame:NSMakeRect(64, 48, xx, yy)];
+    
+    screenToShow.image = convertedImage.FinallyProcessedImage;
+    [self.view addSubview:screenToShow];
+    
+    isNoflicMode = YES;
+    
+}
+
+
 - (void)drawRect:(NSRect)rect {
     // Clear the drawing rect.
 }
@@ -184,6 +214,11 @@
 
 
 - (void) preparingFilesToShow {
+    
+    for (NSView *view in self.view.subviews)
+    {
+        [view removeFromSuperview];
+    }
     
     currentData = [NSData dataWithContentsOfURL:openedURL];
     incomingFileSize = [currentData length];
@@ -238,6 +273,10 @@
             if (ident[0]=='M' && ident[1]=='G' && ident[2]=='S'){
                 [self convertImgMgx:11];
             }
+        }
+        
+        else if (ident[0]=='c' && ident[1]=='h' && ident[2]=='r' && ident[3]=='$') {
+            [self convertChr$:9 height:ident[5] width:ident[4]];
         }
         
     }

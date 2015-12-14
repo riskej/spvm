@@ -24,7 +24,6 @@
 
 - (BOOL) application:(NSApplication *)sender openFile:(NSString *)filename
 {
-    
     NSLog(@"Input file: %@", filename);
     
     return YES;

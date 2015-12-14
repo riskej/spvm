@@ -10,7 +10,7 @@
 
 @interface ViewController : NSViewController
 
-
+-(IBAction)openDocument:(id)sender;
 
 @end
 

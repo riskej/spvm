@@ -25,8 +25,12 @@
 }
 
     int kRetina;
+    NSUInteger incomingFileSize;
     NSImage *image01;
     NSImage *image02;
+
+    NSData *currentData;
+    NSURL *openedURL;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -45,51 +49,39 @@
     [self convert6912Screen:2];
 //    [self convert6144_n_rgb:1];
     
-//    [self testDialog];
 }
 
 
-
-- (BOOL)validateUserInterfaceItem:(id <NSValidatedUserInterfaceItem>)anItem {
+-(IBAction)openDocument:(id)sender {
     
-    SEL theAction = [anItem action];
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setCanChooseFiles:YES];
+    [panel setCanChooseDirectories:NO];
+    [panel setAllowsMultipleSelection:NO]; // yes if more than one dir is allowed
     
-    if (theAction == @selector(openDocument:)) {
-      
-        return YES;
+    NSInteger clicked = [panel runModal];
+    
+    if (clicked == NSFileHandlingPanelOKButton) {
+        for (openedURL in [panel URLs]) {
+            
+            [self preparingFilesToShow];
+            
+        }
     }
-    return [self validateUserInterfaceItem:anItem];
+    
 }
-
-
-//- (void) openDocument {
-//    
-//    NSOpenPanel *panel = [NSOpenPanel openPanel];
-//    [panel setCanChooseFiles:NO];
-//    [panel setCanChooseDirectories:YES];
-//    [panel setAllowsMultipleSelection:YES]; // yes if more than one dir is allowed
-//    
-//    NSInteger clicked = [panel runModal];
-//    
-//    if (clicked == NSFileHandlingPanelOKButton) {
-//        for (NSURL *url in [panel URLs]) {
-//            
-//        }
-//    }
-//    
-//}
 
 #pragma mark - Convert methods
 
 - (void) convert6144_n_rgb:(int) mode_scr {
     
     //    NSLog(@"URL in view: %@", currentData);
-    NSData *data2 = [NSData dataWithContentsOfURL:[NSURL URLWithString :@"https://dl.dropboxusercontent.com/u/36464659/_apptest/np.scr"]];
+//    NSData *data2 = [NSData dataWithContentsOfURL:[NSURL URLWithString :@"https://dl.dropboxusercontent.com/u/36464659/_apptest/np.scr"]];
     
     RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
     convertedImage.mode_scr=mode_scr;
     convertedImage.kRetina = kRetina;
-    [convertedImage openZX_scr6144_n_rgb:data2];
+    [convertedImage openZX_scr6144_n_rgb:currentData];
     image01 = convertedImage.FinallyProcessedImage;
     image02 = convertedImage.FinallyProcessedImage;
     
@@ -112,12 +104,11 @@
     //    NSLog(@"URL in view: %@", currentData);
    
     // Test data
-    NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString :@"https://dl.dropboxusercontent.com/u/36464659/_apptest/np.scr"]];
     
     RKJConverterToRGB *convertedImage = [[RKJConverterToRGB alloc] init];
     convertedImage.mode_scr=mode_scr;
     convertedImage.kRetina = kRetina;
-    [convertedImage openZX_scr6912:data];
+    [convertedImage openZX_scr6912:currentData];
     
 //    image01 = convertedImage.FinallyProcessedImage;
 //    image02 = convertedImage.FinallyProcessedImage2;
@@ -149,6 +140,27 @@
     [super setRepresentedObject:representedObject];
 
     // Update the view, if already loaded.
+}
+
+
+- (void) preparingFilesToShow {
+    
+    
+    currentData = [NSData dataWithContentsOfURL:openedURL];
+    incomingFileSize = [currentData length];
+    
+    if (currentData != nil) {
+     
+        if (incomingFileSize == 6912) {
+            [self convert6912Screen:2];
+        }
+        
+        else if (incomingFileSize == 6144) {
+            [self convert6144_n_rgb:1];
+        }
+        
+    }
+    
 }
 
 @end
